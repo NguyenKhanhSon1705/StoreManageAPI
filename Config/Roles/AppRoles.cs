@@ -1,6 +1,6 @@
 ﻿namespace StoreManageAPI.Config.Roles
 {
-    public class Roles
+    public class AppRoles
     {
         public static string Admin { get; } = "Chủ sở hữu";
         public static string Manager { get; } = "Quản lý";

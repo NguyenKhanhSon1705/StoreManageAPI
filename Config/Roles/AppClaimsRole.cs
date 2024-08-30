@@ -1,6 +1,6 @@
 ﻿namespace StoreManageAPI.Config.Roles
 {
-    public class ClaimsRole
+    public class AppClaimsRole
     {
     }
 }
