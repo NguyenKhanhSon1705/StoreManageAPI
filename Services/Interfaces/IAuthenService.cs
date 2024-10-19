@@ -13,5 +13,6 @@ namespace StoreManageAPI.Services.Interfaces
         public Task<ApiResponse> LoginAsync(LogInV logIn);
         public Task<ApiResponse> RefreshTokenAsync(string refreshToken);
         public Task<ApiResponse> LogoutAsync(string? accessToken , string? refreshToken);
+        public Task<ApiResponse> GetCurrentUserAsync(int shopId);
     }
 }

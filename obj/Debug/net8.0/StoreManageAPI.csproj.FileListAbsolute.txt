@@ -142,3 +142,4 @@ D:\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Newtonsoft.Json.dll
 D:\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll
 D:\DotNetCore\StoreManageAPI\bin\Debug\net8.0\UAParser.dll
 D:\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.Annotations.dll
+D:\DotNetCore\StoreManageAPI\bin\Debug\net8.0\CloudinaryDotNet.dll

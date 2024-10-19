@@ -2,18 +2,23 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using StoreManageAPI.Config;
+using StoreManageAPI.Context;
+using StoreManageAPI.DatabaseMigrations;
+using StoreManageAPI.Mddleware;
 using StoreManageAPI.ModelReturnData;
 using StoreManageAPI.Models;
-using StoreManageAPI.Services;
+using StoreManageAPI.Services.Auth;
 using StoreManageAPI.Services.Interfaces;
+using StoreManageAPI.Services.Shop;
+using StoreManageAPI.Services.Store;
+using StoreManageAPI.Services.UserManager;
 using System.Text;
-using static StoreManageAPI.Functions.SendEmail.SendEmail;
+using static StoreManageAPI.Helpers.SendEmail.SendEmail;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,11 +38,17 @@ builder.Services.AddDbContext<DataStore>(option =>
 
 
 // DI D Injection
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<CloudinaryMiddle>();
 
 // DI Services
 builder.Services.AddScoped<IAuthenService, AuthenService>();
 builder.Services.AddScoped<IJwtService , JwtService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDatabaseMigrationsService, DatabaseMigrationsService>();
+builder.Services.AddScoped<IShopSerVice , ShopService>();
+builder.Services.AddScoped<IAreasService, AreasService>(); 
+builder.Services.AddScoped<ITablesService, TablesService>();
 // SendMail
 var maisetting = builder.Configuration.GetSection("MailSettings");
 builder.Services.Configure<MailSettings>(maisetting);
@@ -78,15 +89,45 @@ builder.Services.Configure<IdentityOptions>(options =>
 // Config CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(ConfigAppSetting.PolicyName, op =>
+    options.AddPolicy(Config.PolicyName, op =>
     {
-       op.WithOrigins(builder.Configuration.GetSection(ConfigAppSetting.AllowedOrigins).Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
+       op.WithOrigins(builder.Configuration.GetSection(Config.AllowedOrigins).Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
 
     });
 });
+
+/*
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AppRoles.Administrator, policy =>
+    {
+        policy.RequireRole(AppRoles.Administrator);
+    });
+    options.AddPolicy(AppRoles.Developer, policy =>
+    {
+        policy.RequireRole(AppRoles.Developer );
+        policy.RequireRole(AppRoles.Administrator );
+    });
+
+
+    options.AddPolicy(AppRoles.Owner, policy =>
+    {
+        policy.RequireRole(AppRoles.Owner);
+    });
+
+    options.AddPolicy(AppRoles.Staff, policy =>
+    {
+        policy.RequireRole(AppRoles.Staff);
+    });
+   
+    options.AddPolicy(AppRoles.Sashier, policy =>
+    {
+        policy.RequireRole(AppRoles.Sashier);
+    });
+});*/
 
 
 // Config JWT 
@@ -96,7 +137,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 
 })
-    .AddJwtBearer(options =>
+    .AddJwtBearer( options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -107,9 +148,9 @@ builder.Services.AddAuthentication(options =>
 
             ClockSkew = TimeSpan.Zero,
 
-            ValidIssuer = builder.Configuration[ConfigAppSetting.Issues] ?? throw new InvalidOperationException("Issues is not found"),
-            ValidAudience = builder.Configuration[ConfigAppSetting.Audience] ?? throw new InvalidOperationException("Audience is not found"),
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration[ConfigAppSetting.AccessTokenSecret] ?? throw new InvalidOperationException("SecurityKey is not found")))
+            ValidIssuer = builder.Configuration[Config.Issues] ?? throw new InvalidOperationException("Issues is not found"),
+            ValidAudience = builder.Configuration[Config.Audience] ?? throw new InvalidOperationException("Audience is not found"),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration[Config.AccessTokenSecret] ?? throw new InvalidOperationException("SecurityKey is not found")))
         };
         options.Events = new JwtBearerEvents
         {
@@ -141,7 +182,6 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddHttpContextAccessor();
-
 
 builder.Services.AddSwaggerGen(opt =>
 {
@@ -191,6 +231,12 @@ builder.Services.AddSwaggerGen(opt =>
         }
     });
 });
+
+// Cho phép mọi URL endpoint đều chuyển thành chữ thường
+builder.Services.AddRouting(option =>
+{
+    option.LowercaseUrls = true;
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -206,11 +252,9 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
-
 app.UseHttpsRedirection();
 
-app.UseCors(ConfigAppSetting.PolicyName);
+app.UseCors(Config.PolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();

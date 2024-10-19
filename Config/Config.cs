@@ -1,6 +1,6 @@
 ﻿namespace StoreManageAPI.Config
 {
-    public class ConfigAppSetting
+    public class Config
     {
         public static string Issues { get; } = "JWT:Issuer";
         public static string Audience { get; } = "JWT:Audience";
@@ -17,6 +17,16 @@
 
         public static string RefreshTokenCookiesName { get; } = "refreshToken";
 
+        // cloudinary
+        public const string CloudName = "Cloudinary:CloudName";
+        public const string ApiKey = "Cloudinary:ApiKey";
+        public const string ApiSecret = "Cloudinary:ApiSecret";
+
+
+        // config quantity result
+        public static int DEFAULT_PAGE_SIZE { get; } =  10;
+        public static int DEFAULT_PAGE_INDEX { get; } = 1;
+        public static int DEFAULT_SEARCH_RESULT { get; } = 10;
 
     }
 }

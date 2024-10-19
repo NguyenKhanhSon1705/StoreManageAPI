@@ -2,16 +2,18 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StoreManageAPI.Config;
-using StoreManageAPI.Functions.SendEmail;
+using StoreManageAPI.Context;
+using StoreManageAPI.Helpers.SendEmail;
 using StoreManageAPI.ModelReturnData;
 using StoreManageAPI.Models;
 using StoreManageAPI.Services.Interfaces;
 using StoreManageAPI.ViewModels.Authentication;
+using StoreManageAPI.ViewModels.UserManager;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using static StoreManageAPI.Functions.SendEmail.SendEmail;
+using static StoreManageAPI.Helpers.SendEmail.SendEmail;
 
-namespace StoreManageAPI.Services
+namespace StoreManageAPI.Services.Auth
 {
     public class AuthenService(
         ISendMail sendEmail,
@@ -20,8 +22,9 @@ namespace StoreManageAPI.Services
         ILogger<AuthenService> logger,
         IJwtService jwtService,
         SignInManager<User> signInManager,
-        UserManager<User> usermanage
-        ) : Interfaces.IAuthenService
+        UserManager<User> usermanage,
+        RoleManager<IdentityRole> roleManager
+        ) : IAuthenService
     {
         private readonly ISendMail sendEmail = sendEmail;
         private readonly DataStore context = context;
@@ -30,6 +33,7 @@ namespace StoreManageAPI.Services
         private readonly ILogger<AuthenService> logger = logger;
         private readonly SignInManager<User> signInManager = signInManager;
         private readonly UserManager<User> userManager = usermanage;
+        private readonly RoleManager<IdentityRole> roleManager = roleManager;
 
         private static string GenerateVerificationCode()
         {
@@ -45,7 +49,6 @@ namespace StoreManageAPI.Services
                     return new ApiResponse() { StatusCode = 409, Message = "Email này đã được đăng ký" };
 
                 string code = GenerateVerificationCode();
-
                 var user = new User
                 {
                     Email = model.Email,
@@ -68,7 +71,7 @@ namespace StoreManageAPI.Services
                 }
 
                 string title = "Xác thực email của bạn";
-                int time = ConfigAppSetting.CodeConfirmExpire;
+                int time = Config.Config.CodeConfirmExpire;
 
                 string html = FormatHTML.FormatConfirmEmailHTML(code, title, time);
                 await sendEmail.SendEmailAsync(model.Email ?? "", title, html);
@@ -111,7 +114,10 @@ namespace StoreManageAPI.Services
             user.EmailConfirmed = true;
             user.CodeExpireTime = null;
             user.VerifiCode = null;
+            await userManager.AddToRoleAsync(user, Config.Roles.AppRoles.Owner);
+
             await userManager.UpdateAsync(user);
+            
             return new ApiResponse()
             {
                 StatusCode = 200,
@@ -134,15 +140,14 @@ namespace StoreManageAPI.Services
 
             string code = GenerateVerificationCode();
 
-            user.CodeExpireTime = DateTime.UtcNow.AddMinutes(ConfigAppSetting.CodeConfirmExpire);
+            user.CodeExpireTime = DateTime.UtcNow.AddMinutes(Config.Config.CodeConfirmExpire);
             user.VerifiCode = code;
 
             string title = "Xác thực email của bạn";
-            int time = ConfigAppSetting.CodeConfirmExpire;
+            int time = Config.Config.CodeConfirmExpire;
 
             string html = FormatHTML.FormatConfirmEmailHTML(code, title, time);
             await sendEmail.SendEmailAsync(email ?? "", title, html);
-
 
             await userManager.UpdateAsync(user);
 
@@ -169,10 +174,10 @@ namespace StoreManageAPI.Services
 
             string code = GenerateVerificationCode();
             user.VerifiCode = code;
-            user.CodeExpireTime = DateTime.UtcNow.AddMinutes(ConfigAppSetting.CodeConfirmExpire);
+            user.CodeExpireTime = DateTime.UtcNow.AddMinutes(Config.Config.CodeConfirmExpire);
 
             string title = "Quên mật khẩu của bạn";
-            int time = ConfigAppSetting.CodeConfirmExpire;
+            int time = Config.Config.CodeConfirmExpire;
 
             string html = FormatHTML.FormatConfirmEmailHTML(code, title, time);
             await sendEmail.SendEmailAsync(email, title, html);
@@ -186,7 +191,7 @@ namespace StoreManageAPI.Services
                 Message = "Vui lòng kiểm tra email của bạn, Xác thực mã code",
             };
         }
-        
+
         public async Task<ApiResponse> ConfirmChangePasswordAsync(ChangePasswordV model)
         {
             var user = await userManager.FindByEmailAsync(model.Email ?? "");
@@ -276,7 +281,7 @@ namespace StoreManageAPI.Services
 
                 var accessToken = jwtService.GenerateAccessToken(tokenClaims);
                 var refreshToken = jwtService.GenerateRefreshToken(tokenClaims) ?? default;
-              
+
 
                 var SaveRefreshToken = new RefreshToken()
                 {
@@ -293,7 +298,7 @@ namespace StoreManageAPI.Services
                 context.RefreshTokens.Add(SaveRefreshToken);
                 await context.SaveChangesAsync();
 
-                httpContextAccessor?.HttpContext?.Response.Cookies.Append(ConfigAppSetting.RefreshTokenCookiesName, refreshToken?.Token ?? "", new CookieOptions
+                httpContextAccessor?.HttpContext?.Response.Cookies.Append(Config.Config.RefreshTokenCookiesName, refreshToken?.Token ?? "", new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
@@ -337,20 +342,20 @@ namespace StoreManageAPI.Services
 
                 var userId = partsClaim.FirstOrDefault(r => r.Type == ClaimTypes.NameIdentifier)?.Value;
 
-                if ( !jwtService.CheckValidateToken(refreshToken , ConfigAppSetting.RefreshTokenSecret) ||  userId == null || refreshTokenId == null || userId == null )
+                if (!jwtService.CheckValidateToken(refreshToken, Config.Config.RefreshTokenSecret) || userId == null || refreshTokenId == null || userId == null)
                 {
                     logger.LogError("Token invalid");
                     throw new InvalidOperationException("Token invalid");
                 }
 
-                var refreshTokenDb = await context.RefreshTokens.FirstOrDefaultAsync(r => r.JwtId == refreshTokenId) ;
+                var refreshTokenDb = await context.RefreshTokens.FirstOrDefaultAsync(r => r.JwtId == refreshTokenId);
 
                 var partsClaimsFromDb = jwtService.GetClaimsFormToken(refreshTokenDb?.TokenRefresh);
 
                 var isClaimValid = partsClaimsFromDb.All(c => partsClaim.Any(r => r.Type == c.Type && r.Value == c.Value));
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-                if (refreshTokenDb.IsUsed || !isClaimValid || !jwtService.CheckValidateToken(refreshTokenDb.TokenRefresh , ConfigAppSetting.RefreshTokenSecret))
+                if (refreshTokenDb.IsUsed || !isClaimValid || !jwtService.CheckValidateToken(refreshTokenDb.TokenRefresh, Config.Config.RefreshTokenSecret))
                 {
                     logger.LogError("Token invalid");
                     throw new InvalidOperationException("Token invalid");
@@ -381,7 +386,7 @@ namespace StoreManageAPI.Services
                 context.RefreshTokens.Add(RefreshToken);
                 await context.SaveChangesAsync();
 
-                httpContextAccessor?.HttpContext?.Response.Cookies.Append(ConfigAppSetting.RefreshTokenCookiesName, newRefreshTokenResponse.Token ?? "", new CookieOptions
+                httpContextAccessor?.HttpContext?.Response.Cookies.Append(Config.Config.RefreshTokenCookiesName, newRefreshTokenResponse.Token ?? "", new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
@@ -442,7 +447,7 @@ namespace StoreManageAPI.Services
                 var accessTokenId = accessTokenClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
                 var refreshTokenId = refreshTokenClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
 
-                httpContextAccessor?.HttpContext?.Response.Cookies.Delete(ConfigAppSetting.RefreshTokenCookiesName);
+                httpContextAccessor?.HttpContext?.Response.Cookies.Delete(Config.Config.RefreshTokenCookiesName);
 
                 context.RefreshTokens.RemoveRange(context.RefreshTokens.Where(rt => rt.JwtId == refreshTokenId));
                 await context.SaveChangesAsync();
@@ -457,7 +462,7 @@ namespace StoreManageAPI.Services
             }
             catch (Exception e)
             {
-                logger.LogError($"Error occurred while logging out: {e.Message} at {DateTime.UtcNow}");
+                logger.LogError($"Error occurred while Authen/LogoutAsync out: {e.Message} at {DateTime.UtcNow}");
                 return new ApiResponse
                 {
                     StatusCode = 500,
@@ -465,6 +470,70 @@ namespace StoreManageAPI.Services
                     Message = "Không thể đăng xuất, vui lòng thử lại sau hoặc liên hệ quản trị viên"
                 };
             }
+        }
+
+        public async Task<ApiResponse> GetCurrentUserAsync(int shopId)
+        {
+            try
+            {
+                var userId = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                var user = await userManager.FindByIdAsync(userId ?? "");
+                if (user == null)
+                {
+                    return new ApiResponse
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        IsSuccess = false,
+                        Message = "Không tìm thấy người dùng này"
+                    };
+                }
+
+                var checkAcces = await context.ShopUser.AnyAsync(su => su.UserId == userId && su.ShopId == shopId);
+                if (!checkAcces)
+                {
+                    return new ApiResponse
+                    {
+                        Message = "Bạn không thể thay đổi trạng thái",
+                        StatusCode = StatusCodes.Status400BadRequest,
+                    };
+                }
+
+                var shop = await context.Shop.FindAsync(shopId);
+
+
+
+                return new ApiResponse
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    IsSuccess = true,
+                    Data = new UserShopInfoV
+                    {
+                        FullName = user.FullName,
+                        Email = user.Email,
+                        Picture = user.Picture,
+
+                        shopId = shop.Id,
+                        ShopLogo = shop.ShopLogo,
+                        ShopName = shop.ShopName,
+                        IsActive = shop.IsActive,
+                    }
+                };
+
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Error occurred while Authen/GetCurrentUser out: {e.Message} at {DateTime.UtcNow}");
+                return new ApiResponse
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    IsSuccess = false,
+                    Message = "Error occurred while Authen/GetCurrentUser"
+                };
+            }
+
+
+            
         }
     }
 }

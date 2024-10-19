@@ -2,9 +2,11 @@
 {
     public class AppRoles
     {
-        public static string Admin { get; } = "Chủ sở hữu";
-        public static string Manager { get; } = "Quản lý";
-        public static string Staff { get; } = "Nhân viên";
-        public static string cashier { get; } = "Thu ngân";
+        public const string Administrator = "Quản trị viên";
+        public const string Developer = "Nhà phát triển";
+        public const string Owner = "Chủ sở hữu";
+        public const string Manager = "Quản lý";
+        public const string Staff = "Nhân viên";
+        public const string Sashier  = "Thu ngân";
     }
 }

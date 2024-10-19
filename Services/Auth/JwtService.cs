@@ -11,9 +11,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace StoreManageAPI.Services
+namespace StoreManageAPI.Services.Auth
 {
-    public class JwtService 
+    public class JwtService
         (
             IConfiguration configuration,
             ILogger<JwtService> logger
@@ -27,17 +27,17 @@ namespace StoreManageAPI.Services
             try
             {
                 var existTokenId = authClaims.Exists(auth => auth.Type == JwtRegisteredClaimNames.Jti);
-                if (existTokenId) 
-                { 
-                    authClaims.Remove(authClaims.First(auth => auth.Type ==  JwtRegisteredClaimNames.Jti));
+                if (existTokenId)
+                {
+                    authClaims.Remove(authClaims.First(auth => auth.Type == JwtRegisteredClaimNames.Jti));
                 }
 
                 var tokenId = Guid.NewGuid().ToString();
 
-                _ = int.TryParse(configuration[ConfigAppSetting.AccessTokenExpireMinutes], out int AccessTokenExpireMinutes);
+                _ = int.TryParse(configuration[Config.Config.AccessTokenExpireMinutes], out int AccessTokenExpireMinutes);
                 var expiration = DateTime.UtcNow.AddMinutes(AccessTokenExpireMinutes);
 
-                var secretKeyHash = Encoding.UTF8.GetBytes(configuration[ConfigAppSetting.AccessTokenSecret] ?? throw new InvalidOperationException("Secret access token not found"));
+                var secretKeyHash = Encoding.UTF8.GetBytes(configuration[Config.Config.AccessTokenSecret] ?? throw new InvalidOperationException("Secret access token not found"));
 
                 var authSecret = new SymmetricSecurityKey(secretKeyHash);
 
@@ -45,11 +45,11 @@ namespace StoreManageAPI.Services
 
                 var jwtToken = new JwtSecurityToken
                 (
-                    issuer: configuration[ConfigAppSetting.Issues],
-                    audience: configuration[ConfigAppSetting.Audience],
+                    issuer: configuration[Config.Config.Issues],
+                    audience: configuration[Config.Config.Audience],
                     expires: expiration,
                     claims: authClaims,
-                    signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256) 
+                    signingCredentials: new SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256)
                 );
 
                 var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
@@ -61,7 +61,7 @@ namespace StoreManageAPI.Services
                     Token = token
                 };
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 logger.LogError($"Error occurred while create token : {ex.Message} : at {DateTime.UtcNow}");
                 return default;
@@ -80,22 +80,22 @@ namespace StoreManageAPI.Services
 
                 var refreshTokenId = Guid.NewGuid().ToString();
 
-                _ = int.TryParse(configuration[ConfigAppSetting.RefreshTokenExpireMinutes], out int RefreshTokenExpireMinutes);
+                _ = int.TryParse(configuration[Config.Config.RefreshTokenExpireMinutes], out int RefreshTokenExpireMinutes);
                 var expiration = DateTime.UtcNow.AddMinutes(RefreshTokenExpireMinutes);
 
-                var secretKeyHash = Encoding.UTF8.GetBytes(configuration[ConfigAppSetting.RefreshTokenSecret] ?? throw new InvalidOperationException("Secret refresh token not found"));
+                var secretKeyHash = Encoding.UTF8.GetBytes(configuration[Config.Config.RefreshTokenSecret] ?? throw new InvalidOperationException("Secret refresh token not found"));
 
                 var authSecret = new SymmetricSecurityKey(secretKeyHash);
-                
+
                 authClaims.Add(new Claim(JwtRegisteredClaimNames.Jti, refreshTokenId));
 
                 var refreshToken = new JwtSecurityToken
                 (
-                    issuer: configuration[ConfigAppSetting.Issues],
-                    audience: configuration[ConfigAppSetting.Audience],
+                    issuer: configuration[Config.Config.Issues],
+                    audience: configuration[Config.Config.Audience],
                     expires: expiration,
                     claims: authClaims,
-                    signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256)
+                    signingCredentials: new SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256)
                 );
                 var token = new JwtSecurityTokenHandler().WriteToken(refreshToken);
                 return new TokenResponse
@@ -106,7 +106,7 @@ namespace StoreManageAPI.Services
                 };
 
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 logger.LogError($"Error occurred while create refresh token : {ex.Message} at {DateTime.UtcNow}");
                 return default;
@@ -120,17 +120,17 @@ namespace StoreManageAPI.Services
 
             if (tokenHandler.ReadToken(token) is JwtSecurityToken securityToken)
             {
-            logger.LogError("111m= Lỗi đây này");
+                logger.LogError("111m= Lỗi đây này");
                 return securityToken.Claims.ToList();
             }
             logger.LogError("Lỗi đây này");
             return [];
-           
+
         }
-        public bool CheckValidateToken(string? token , dynamic op )
+        public bool CheckValidateToken(string? token, dynamic op)
         {
-            var issues = configuration[ConfigAppSetting.Issues];
-            var audience = configuration[ConfigAppSetting.Audience];
+            var issues = configuration[Config.Config.Issues];
+            var audience = configuration[Config.Config.Audience];
             var scret = configuration[op];
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -147,7 +147,7 @@ namespace StoreManageAPI.Services
                 ClockSkew = TimeSpan.Zero
             };
 
-            tokenHandler.ValidateToken(token, validationParameters , out SecurityToken validatedToken);
+            tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
             return validatedToken != null;
         }
 

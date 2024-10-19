@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using StoreManageAPI.Models;
+using StoreManageAPI.Context;
 
 #nullable disable
 
 namespace StoreManageAPI.Migrations
 {
     [DbContext(typeof(DataStore))]
-    [Migration("20240827184629_v1_tbl_users")]
-    partial class v1_tbl_users
+    [Migration("20241015100254_v1_tbl_tables")]
+    partial class v1_tbl_tables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,7 @@ namespace StoreManageAPI.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -68,7 +68,7 @@ namespace StoreManageAPI.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -91,7 +91,7 @@ namespace StoreManageAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -113,7 +113,7 @@ namespace StoreManageAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -128,7 +128,7 @@ namespace StoreManageAPI.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -147,7 +147,157 @@ namespace StoreManageAPI.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.Areas", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("AreaName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("ShopId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShopId");
+
+                    b.ToTable("Areas");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.RefreshToken", b =>
+                {
+                    b.Property<string>("JwtId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("DeviceInfo")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsMobile")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenRefresh")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("JwtId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.Shop", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool?>("LockStore")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ShopAddress")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ShopLogo")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ShopName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ShopPhone")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Shop");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.ShopUser", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "ShopId");
+
+                    b.HasIndex("ShopId");
+
+                    b.ToTable("ShopUser");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.Tables", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AreaId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("HasHourlyRate")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsBooking")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("NameTable")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal?>("PriceOfMunite")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("TimeEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("TimeStart")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.ToTable("Tables");
                 });
 
             modelBuilder.Entity("StoreManageAPI.Models.User", b =>
@@ -184,20 +334,26 @@ namespace StoreManageAPI.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Gender")
-                        .HasColumnType("longtext");
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsLock")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("IsOwner")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("LockAtDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LockByUser")
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetime");
-
-                    b.Property<int?>("LookAccount")
-                        .HasColumnType("int");
 
                     b.Property<string>("ManagerID")
                         .HasColumnType("varchar(255)");
@@ -246,7 +402,7 @@ namespace StoreManageAPI.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -300,6 +456,56 @@ namespace StoreManageAPI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("StoreManageAPI.Models.Areas", b =>
+                {
+                    b.HasOne("StoreManageAPI.Models.Shop", "Shop")
+                        .WithMany()
+                        .HasForeignKey("ShopId");
+
+                    b.Navigation("Shop");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.RefreshToken", b =>
+                {
+                    b.HasOne("StoreManageAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.ShopUser", b =>
+                {
+                    b.HasOne("StoreManageAPI.Models.Shop", "Shop")
+                        .WithMany("StoreUsers")
+                        .HasForeignKey("ShopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StoreManageAPI.Models.User", "User")
+                        .WithMany("StoreUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shop");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.Tables", b =>
+                {
+                    b.HasOne("StoreManageAPI.Models.Areas", "Areas")
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Areas");
+                });
+
             modelBuilder.Entity("StoreManageAPI.Models.User", b =>
                 {
                     b.HasOne("StoreManageAPI.Models.User", "_User")
@@ -307,6 +513,16 @@ namespace StoreManageAPI.Migrations
                         .HasForeignKey("ManagerID");
 
                     b.Navigation("_User");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.Shop", b =>
+                {
+                    b.Navigation("StoreUsers");
+                });
+
+            modelBuilder.Entity("StoreManageAPI.Models.User", b =>
+                {
+                    b.Navigation("StoreUsers");
                 });
 #pragma warning restore 612, 618
         }

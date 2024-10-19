@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace StoreManageAPI.Functions.SendEmail
+namespace StoreManageAPI.Helpers.SendEmail
 {
     public class SendEmail
     {
@@ -49,7 +49,7 @@ namespace StoreManageAPI.Functions.SendEmail
                 catch (Exception ex)
                 {
                     // Gửi mail thất bại, nội dung email sẽ lưu vào thư mục mailssave
-                    System.IO.Directory.CreateDirectory("mailssave");
+                    Directory.CreateDirectory("mailssave");
                     var emailsavefile = string.Format(@"mailssave/{0}.eml", Guid.NewGuid());
                     await message.WriteToAsync(emailsavefile);
 
