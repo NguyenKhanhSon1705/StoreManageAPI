@@ -64,13 +64,46 @@
               "target": "Package",
               "version": "[8.0.7, )"
             },
+<<<<<<< Updated upstream
+=======
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.7, )"
+            },
+            "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
+              "target": "Package",
+              "version": "[1.21.0, )"
+            },
+            "MimeKit": {
+              "target": "Package",
+              "version": "[4.7.1, )"
+            },
+>>>>>>> Stashed changes
             "MySql.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.5, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
+<<<<<<< Updated upstream
               "version": "[6.4.0, )"
+=======
+              "version": "[6.7.2, )"
+            },
+            "Swashbuckle.AspNetCore.Annotations": {
+              "target": "Package",
+              "version": "[6.7.2, )"
+            },
+            "UAParser": {
+              "target": "Package",
+              "version": "[3.1.47, )"
+            },
+            "VNPAY.NET": {
+              "target": "Package",
+              "version": "[8.5.0, )"
+>>>>>>> Stashed changes
             }
           },
           "imports": [

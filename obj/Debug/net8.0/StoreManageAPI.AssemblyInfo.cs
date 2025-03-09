@@ -11,10 +11,15 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("27eb80cb-d192-43f8-9a0b-97ffe4e6c0c5")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("StoreManageAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< Updated upstream
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+213809342176feb756e7fb0cc76c13105499a264")]
+>>>>>>> Stashed changes
 [assembly: System.Reflection.AssemblyProductAttribute("StoreManageAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StoreManageAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
