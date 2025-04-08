@@ -15,7 +15,7 @@ namespace StoreManageAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [SwaggerTag("Quản lý người dùng")]
-    [Authorize]
+    //[Authorize]
     public class UsersController
         (
         IUserService userService
@@ -24,29 +24,19 @@ namespace StoreManageAPI.Controllers
         private readonly IUserService userService = userService;
 
         [HttpPost("create-user")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation( "Thêm người dùng thủ công" ,"Thêm tài khoản người dùng do một người có chức vụ lớn hơn hoặc có quyền thêm")]
         public async Task<IActionResult> CreateUser([FromBody]CreateUserV model)
         {
             if(!ModelState.IsValid)
             {
-                return BadRequest(new ApiResponse
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Dữ liệu không hợp lệ",
-                    Data = ModelState.Values.ToList()
-                });
+                return BadRequest();
             }
 
             var result = await userService.CreateUserAsync(model);
             if(!result.IsSuccess)
             {
-                return BadRequest(new ApiResponse
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Dữ liệu không hợp lệ",
-                    Data = result.Message
-                });
+                return BadRequest(result);
             }
             return StatusCode(result.StatusCode , result);
         }
@@ -68,7 +58,7 @@ namespace StoreManageAPI.Controllers
         }
 
         [HttpGet("get-user-id")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Chi tiết người dùng" , "Tìm thông tin người dùng theo ID")]
         public async Task<IActionResult> GetUserById([FromQuery] string userId)
         {
@@ -90,7 +80,7 @@ namespace StoreManageAPI.Controllers
         }
 
         [HttpPut("lock-user")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Khóa người dùng theo ID" , "Khóa tạm thời một tài khoản người dùng theo ID")]
         public async Task<IActionResult> LockUser([FromBody] ParamsIdV model)
         {
@@ -111,7 +101,7 @@ namespace StoreManageAPI.Controllers
             return StatusCode(result.StatusCode , result);
         }
         [HttpPut("unlock-user")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Mở khóa người dùng theo ID", "Mở khóa tạm thời một tài khoản người dùng theo ID")]
         public async Task<IActionResult> UnLockUser([FromBody] ParamsIdV model)
         {
@@ -132,7 +122,7 @@ namespace StoreManageAPI.Controllers
             return StatusCode(result.StatusCode, result);
         }
         [HttpGet("search-user")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Tìm kiếm" , "Tìm kiếm thông tin người dùng với trường họ tên")]
         public async Task<IActionResult> SearchUsers([FromQuery] string search , [FromQuery] int limit = 10)
         {
@@ -157,18 +147,23 @@ namespace StoreManageAPI.Controllers
         [HttpGet("get-user-all")]
         [SwaggerOperation("Lấy tất cả thông tin người dùng", "Lấy tất cả thông tin người dùng")]
         [Authorize(Roles = AppRoles.Owner)]
-        public async Task<IActionResult> GetAllUser([FromQuery] int? PageIndex = 1,[FromQuery] int? limit = 10)
+        public async Task<IActionResult> GetAllUser([FromQuery] int? PageIndex = 1,[FromQuery] int? limit = 5)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new ApiResponse
+                return BadRequest();
+            }
+
+            if (!User.IsInRole(AppRoles.Owner))
+            {
+                return BadRequest(new
                 {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Dữ liệu không hợp lệ",
-                    Data = ModelState.Values.ToList()
+                    message = "test",
+                    code = 403
                 });
             }
-            var result = await userService.GetAllUserAsync(PageIndex, limit);
+
+            var result = await userService.GetAllUserAsync(PageIndex, limit );
 
             if (!result.IsSuccess)
             {
@@ -176,6 +171,7 @@ namespace StoreManageAPI.Controllers
             }
             return StatusCode(result.StatusCode, result);
         }
+
         [HttpGet("get-user-all-islock")]
         [Authorize(Roles = AppRoles.Owner)]
         [SwaggerOperation("Lấy tất cả thông tin người dùng bị khóa", "Lấy tất cả thông tin người dùng bị khóa")]
@@ -199,7 +195,7 @@ namespace StoreManageAPI.Controllers
         }
         
         [HttpGet("get-user-tree")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Lấy tất cả thông tin người dùng bị khóa", "Lấy tất cả thông tin người dùng bị khóa")]
         public async Task<IActionResult> GetUserOfTree()
         {
@@ -212,7 +208,7 @@ namespace StoreManageAPI.Controllers
         }
 
         [HttpGet("get-user-tree-by-id")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         [SwaggerOperation("Lấy tất cả thông tin người dùng bị khóa", "Lấy tất cả thông tin người dùng bị khóa")]
         public async Task<IActionResult> GetUserOfTreeById(string id)
         {

@@ -11,7 +11,7 @@ namespace StoreManageAPI.Services.Interfaces
         public Task<ApiResponse> LockUserAsync(string id);
         public Task<ApiResponse> UnLockUserAsync(string id);
         public Task<ApiResponse> SearchUsersAsync(string? searchKey, int? limit);
-        public Task<ApiResponse> GetAllUserAsync(int? PageIndex, int? limit);
+        public Task<ApiResponse> GetAllUserAsync(int? PageIndex, int? limit, int shop_id = 5);
         public Task<ApiResponse> GetAllLockUsersAsync(int? PageIndex, int? limit);
         public Task<ApiResponse> GetUserOfTreeAsync();
         public Task<ApiResponse> GetUserOfTreeByIdAsync(string userId);

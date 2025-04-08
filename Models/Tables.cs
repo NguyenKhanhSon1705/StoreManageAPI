@@ -14,7 +14,8 @@ namespace StoreManageAPI.Models
         [Required]
         public string? NameTable { get; set; }
         public bool IsActive { get; set; } = false;
-        public bool IsBooking { get; set; } = false ;
+        public bool IsBooking { get; set; } = false;
+        public int? Order { get; set; }
 
         public bool? HasHourlyRate { get; set; } = false;
         public DateTime? TimeStart { get; set; } = null;

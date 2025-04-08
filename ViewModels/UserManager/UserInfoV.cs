@@ -18,6 +18,7 @@ namespace StoreManageAPI.ViewModels.UserManager
         public DateTime? LockAtDate { get; set; } = null;
         public string? LockByUser { get; set; } = null;
         public bool? IsLock { get; set; } = null;
-        public IList<string>? Roles { get; set; }
+        public string? Roles { get; set; }
+        public string? RoleId { get; set; }
     }
 }

@@ -6,6 +6,8 @@ namespace StoreManageAPI.ViewModels.UserManager
     {
         public string? Id { get; set; }
         [Required]
+        public int? IdShop { get; set; }
+        [Required]
         public string? FullName { get; set; }
         [Required]
         [EmailAddress]
@@ -18,7 +20,7 @@ namespace StoreManageAPI.ViewModels.UserManager
         public string? Picture { get; set; }
         public DateTime? BirthDay { get; set; }
         public int? Gender { get; set; }
-        public List<string>? Roles { get; set; }
+        public string? RoleId { get; set; }
 
     }
 }

@@ -91,7 +91,7 @@ namespace StoreManageAPI.Services.Shop
             try
             {
                 var table = await context.Tables.FindAsync(idTable);
-                if( table == null )
+                if (table == null)
                 {
                     return new ApiResponse
                     {
@@ -99,7 +99,18 @@ namespace StoreManageAPI.Services.Shop
                         StatusCode = 404
                     };
                 }
-                context.Tables.Remove( table );
+
+                // Ngắt kết nối các thực thể liên quan
+                var relatedTableDishs = context.TableDishs.Where(td => td.tableId == idTable);
+                foreach (var tableDish in relatedTableDishs)
+                {
+                    tableDish.tableId = null; // Hoặc gán giá trị mặc định phù hợp
+                }
+
+                await context.SaveChangesAsync();
+
+                // Xóa thực thể Tables
+                context.Tables.Remove(table);
                 await context.SaveChangesAsync();
 
                 return new ApiResponse

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StoreManageAPI.Context;
 using StoreManageAPI.Helpers.Paging;
 using StoreManageAPI.Mddleware;
 using StoreManageAPI.ModelReturnData;
@@ -8,6 +10,7 @@ using StoreManageAPI.Models;
 using StoreManageAPI.Services.Interfaces;
 using StoreManageAPI.ViewModels.UserManager;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StoreManageAPI.Services.UserManager
 {
@@ -18,7 +21,8 @@ namespace StoreManageAPI.Services.UserManager
         IMapper mapper,
         IHttpContextAccessor httpcontextAccessor,
         ILogger<UserService> logger,
-        CloudinaryMiddle cloud
+        CloudinaryMiddle cloud,
+        DataStore context
 
 
         ) : IUserService
@@ -29,6 +33,7 @@ namespace StoreManageAPI.Services.UserManager
         private readonly IHttpContextAccessor httpcontextAccessor = httpcontextAccessor;
         private readonly ILogger<UserService> logger = logger;
         private readonly CloudinaryMiddle cloud = cloud;
+        private readonly DataStore context = context;
 
         public int DEFAULT_PAGE_SIZE = 10;
         public int DEFAULT_PAGE_INDEX = 1;
@@ -49,14 +54,25 @@ namespace StoreManageAPI.Services.UserManager
 
                 var idCurrentUser = httpcontextAccessor?.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-               /* if (await userManager.FindByIdAsync(idCurrentUser ?? "") == null)
+                
+                if (await userManager.FindByIdAsync(idCurrentUser ?? "") == null)
+                {
+                     return new ApiResponse
+                     {
+                         StatusCode = StatusCodes.Status404NotFound,
+                         Message = "Tài khoản đang đăng nhập không hợp lệ!",
+                     };
+                }
+                var shop = await context.Shop.FindAsync(model.IdShop);
+
+                if (shop == null)
                 {
                     return new ApiResponse
                     {
-                        StatusCode = StatusCodes.Status404NotFound,
-                        Message = "Tài khoản đang đăng nhập không hợp lệ!",
+                        Message = "Thông tin cửa hàng không tồn tại",
+                        StatusCode = 404
                     };
-                }*/
+                }
 
                 var user = new User
                 {
@@ -74,33 +90,41 @@ namespace StoreManageAPI.Services.UserManager
 
                 var newUser = await userManager.CreateAsync(user, model.PhoneNumber ?? "");
 
+                var shopUser = new ShopUser
+                {
+                    ShopId = shop.Id,
+                    User = user
+                };
+                await context.ShopUser.AddAsync(shopUser);
+
                 if (!newUser.Succeeded)
                 {
                     foreach(var e in newUser.Errors)
                     {
-                     logger.LogError($"There are - {e.Description} - error in UserService/CreateUser at ${DateTime.UtcNow} ");
-
+                        return new ApiResponse
+                        {
+                            StatusCode = StatusCodes.Status500InternalServerError,
+                            Message = e.Description,
+                        };
                     }
+                }
+
+                var role = await roleManager.FindByIdAsync(model.RoleId ?? "");
+
+                if(role == null)
+                {
                     return new ApiResponse
                     {
-                        StatusCode = StatusCodes.Status500InternalServerError,
-                        Message = "There are something error in UserService/CreateUser!",
+                        Message = "Vai trò này không tồn tại",
+                        StatusCode = 404
                     };
                 }
 
-                if (model.Roles != null)
-                {
-                    foreach (var role in model.Roles)
-                    {
-                        if (!await roleManager.RoleExistsAsync(role)) continue;
-
-                        await userManager.AddToRoleAsync(user, role);
-                    }
-                }
-
+                await userManager.AddToRoleAsync(user, role.Name ?? "");
+                
                 var userRreturn = mapper.Map<UserInfoV>(user);
-                userRreturn.Roles = model.Roles;
-
+                userRreturn.Roles = role.Name;
+                userRreturn.RoleId = role.Id;
 
                 return new ApiResponse
                 {
@@ -127,7 +151,6 @@ namespace StoreManageAPI.Services.UserManager
         {
             try
             {
-                logger.LogError(model.PhoneNumber);
                 var user = await userManager.FindByIdAsync(model.Id ?? "");
                 if (user == null)
                 {
@@ -151,7 +174,24 @@ namespace StoreManageAPI.Services.UserManager
                 user.Gender = model.Gender;
                 user.Address = model.Address;
                 
+                var role = await roleManager.FindByIdAsync(model.RoleId ?? "");
+
+                if (role == null)
+                {
+                    return new ApiResponse
+                    {
+                        StatusCode = 200,
+                        Message = "Vai trò không tồn tại",
+                    };
+                }
+                var currentRole = await userManager.GetRolesAsync(user);
+
+                await userManager.RemoveFromRolesAsync(user,currentRole);
+
+                await userManager.AddToRoleAsync(user,role.Name ?? "");
+
                 var result =  await userManager.UpdateAsync(user);
+
                 if (!result.Succeeded)
                 {
                     foreach (var item in result.Errors)
@@ -159,6 +199,7 @@ namespace StoreManageAPI.Services.UserManager
                         logger.LogError($"There are something error in UserService/UpdateUserAsync: {item} at {DateTime.UtcNow}");
                     }
                 }
+
                 return new ApiResponse
                 {
                     StatusCode = 200,
@@ -194,12 +235,14 @@ namespace StoreManageAPI.Services.UserManager
                     };
                 }
 
-                var roles = await userManager.GetRolesAsync(user);
-
                 var userInfo = mapper.Map<UserInfoV>(user);
 
-                userInfo.Roles = roles;
+                var roles = await userManager.GetRolesAsync(user);
+                var role = await roleManager.FindByNameAsync(roles.First());
+                userInfo.RoleId = role.Id;
+                userInfo.Roles = role.Name;
                 userInfo.ManagerName = managerName?.FullName ?? managerName?.Email;
+
                 return new ApiResponse
                 {
                     StatusCode = StatusCodes.Status200OK,
@@ -371,12 +414,15 @@ namespace StoreManageAPI.Services.UserManager
             }
         }
 
-        public async Task<ApiResponse> GetAllUserAsync(int? PageIndex, int? limit)
+        public async Task<ApiResponse> GetAllUserAsync(int? PageIndex, int? limit, int shop_id = 5)
         {
             try
             {
-                var query = userManager.Users.AsQueryable();
+                //var query = context.ShopUser.Include(inc => inc.User).Where(w => w.ShopId == shop_id).AsQueryable();
 
+                var query = userManager.Users.AsQueryable();
+                
+                
                 query = query.Where(u => u.IsLock == false || u.IsLock == null);
                 query = query.OrderByDescending(u => u.CreationDate);
 
@@ -385,6 +431,7 @@ namespace StoreManageAPI.Services.UserManager
 
                 var result = await Paging<User, User>.CreateAsync(query, pageIndex, pageSize);
                 var userList = new Paging<UserInfoV, UserInfoV>(mapper.Map<List<UserInfoV>>(result.Items), result.TotalCount, result.PageIndex, result.PageSize);
+                
 
                 foreach (var user in result.Items)
                 {
@@ -392,7 +439,7 @@ namespace StoreManageAPI.Services.UserManager
                     var userVM = userList.Items.FirstOrDefault(u => u.Id == user.Id);
                     if (userVM != null)
                     {
-                        userVM.Roles = roles;
+                        userVM.Roles = roles.FirstOrDefault();
                     }
                 }
                 return new ApiResponse
@@ -434,7 +481,7 @@ namespace StoreManageAPI.Services.UserManager
                     var userVM = userList.Items.FirstOrDefault(u => u.Id == user.Id);
                     if (userVM != null)
                     {
-                        userVM.Roles = roles;
+                        userVM.Roles = roles.FirstOrDefault();
                     }
                 }
                 return new ApiResponse
@@ -483,7 +530,7 @@ namespace StoreManageAPI.Services.UserManager
 
                 // Mapping user với thông tin và role
                 var userInfo = mapper.Map<UserInfoV>(user);
-                userInfo.Roles = roles; // Giả sử UserInfoV có thuộc tính Roles
+                userInfo.Roles = roles.FirstOrDefault(); 
 
                 result.Add(userInfo);
             }
@@ -519,7 +566,7 @@ namespace StoreManageAPI.Services.UserManager
 
                 // Mapping user với thông tin và role
                 var userInfo = mapper.Map<UserInfoV>(user);
-                userInfo.Roles = roles; // Giả sử UserInfoV có thuộc tính Roles
+                userInfo.Roles = roles.FirstOrDefault();
 
                 result.Add(userInfo);
             }

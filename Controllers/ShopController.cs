@@ -68,7 +68,7 @@ namespace StoreManageAPI.Controllers
         }
 
         [HttpPut("active-shop")]
-        [Authorize(Roles = AppRoles.Owner + "," + AppRoles.Manager)]
+        [Authorize(Roles = AppRoles.Owner + "," + AppRolesShop.Manager)]
         public async Task<IActionResult> ActiveShop([Required] int id)
         {
             if (!ModelState.IsValid)
@@ -116,19 +116,13 @@ namespace StoreManageAPI.Controllers
             }
             return Ok(result);
         }
-
+        
         [HttpPost("test-uploadimg")]
-        public async Task<IActionResult> TestUploadImage(IFormFile file)
+        public  IActionResult TestUploadImage(int shop_id , int table_id)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
 
-            var imageUrl = await cloud.CloudinaryUploadImage(file);
-
-            if (string.IsNullOrEmpty(imageUrl))
-                return StatusCode(500, "Error uploading image.");
-
-            return Ok(new { imageUrl });
+            
+            return Ok();
         }
     }
 }

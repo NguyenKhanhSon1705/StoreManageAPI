@@ -284,7 +284,17 @@ namespace StoreManageAPI.DatabaseMigrations
                         await roleManager.CreateAsync(new IdentityRole(rolename));
                     }
                 }
+                var rolenamesShop = typeof(AppRolesShop).GetFields().ToList();
 
+                foreach (var r in rolenamesShop)
+                {
+                    var rolename = r.GetRawConstantValue()?.ToString() ?? "";
+                    var rfound = await roleManager.FindByNameAsync(rolename);
+                    if (rfound == null)
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(rolename));
+                    }
+                }
 
                 // admin@gmail.com // 12345
 

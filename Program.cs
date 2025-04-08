@@ -13,11 +13,17 @@ using StoreManageAPI.Mddleware;
 using StoreManageAPI.ModelReturnData;
 using StoreManageAPI.Models;
 using StoreManageAPI.Services.Auth;
+using StoreManageAPI.Services.Dish;
 using StoreManageAPI.Services.Interfaces;
+using StoreManageAPI.Services.OrderTables;
+using StoreManageAPI.Services.Reports;
+using StoreManageAPI.Services.Roles;
 using StoreManageAPI.Services.Shop;
 using StoreManageAPI.Services.Store;
 using StoreManageAPI.Services.UserManager;
+using StoreManageAPI.Services.VnPay;
 using System.Text;
+using VNPAY.NET;
 using static StoreManageAPI.Helpers.SendEmail.SendEmail;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +48,9 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<CloudinaryMiddle>();
 
 // DI Services
+builder.Services.AddScoped<IVnpay, Vnpay>();
+
+builder.Services.AddScoped<IVnpayService, VnpayService>();
 builder.Services.AddScoped<IAuthenService, AuthenService>();
 builder.Services.AddScoped<IJwtService , JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -49,6 +58,16 @@ builder.Services.AddScoped<IDatabaseMigrationsService, DatabaseMigrationsService
 builder.Services.AddScoped<IShopSerVice , ShopService>();
 builder.Services.AddScoped<IAreasService, AreasService>(); 
 builder.Services.AddScoped<ITablesService, TablesService>();
+builder.Services.AddScoped<IRolesService, RolesService>();
+builder.Services.AddScoped<IMenuGroupService, MenuGroupService>();
+builder.Services.AddScoped<IDishService, DishService>();
+builder.Services.AddScoped<ITableAreaService, TableAreaService>();
+builder.Services.AddScoped<ITableDishService,  TableDishService>();
+
+builder.Services.AddScoped<IReportAbortedService, ReportAbortedService>();
+builder.Services.AddScoped<IReportBillService, ReportBillService>();
+builder.Services.AddScoped<IStatisticalService, StatisticalService>();
+
 // SendMail
 var maisetting = builder.Configuration.GetSection("MailSettings");
 builder.Services.Configure<MailSettings>(maisetting);
@@ -85,19 +104,27 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 });
 
+//builder.Services.AddCors(options =>{
+//     options.AddPolicy(Config.PolicyName, policy =>
+//    {
+//        policy.WithOrigins("https://giving-grackle-gradually.ngrok-free.app") // Cho phép mọi origin
+//              .AllowCredentials()
+//              .AllowAnyHeader()
+//              .AllowAnyMethod();
+//    });
+//});
 
 // Config CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(Config.PolicyName, op =>
-    {
+ builder.Services.AddCors(options =>
+ {
+     options.AddPolicy(Config.PolicyName, op =>
+     {
        op.WithOrigins(builder.Configuration.GetSection(Config.AllowedOrigins).Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
-
-    });
-});
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials();
+     });
+ });
 
 /*
 builder.Services.AddAuthorization(options =>
@@ -178,33 +205,15 @@ builder.Services.AddControllers()
         options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;/*
         options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;*/
         options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
+        
     });
+
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.EnableAnnotations();
-
-    opt.SwaggerDoc("v1", new OpenApiInfo 
-    {
-        Title = "My API",
-        Version = "v1",
-        Description = "This is a sample API for demonstration purposes.",
-        Contact = new OpenApiContact
-        {
-            Name = "John Doe",
-            Email = "john.doe@example.com",
-            Url = new Uri("https://example.com/contact")
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT",
-            Url = new Uri("https://opensource.org/licenses/MIT")
-        }
-    }
-    );
 
     opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -237,6 +246,8 @@ builder.Services.AddRouting(option =>
 {
     option.LowercaseUrls = true;
 });
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -248,9 +259,9 @@ if (app.Environment.IsDevelopment())
     {
         config.SwaggerEndpoint("v1/swagger.json", "Test");
     });
-
 }
 
+app.Urls.Add("http://0.0.0.0:5000");
 
 app.UseHttpsRedirection();
 
