@@ -295,3 +295,9 @@ C:\D\DotNetCore\StoreManageAPI\obj\Debug\net8.0\ref\StoreManageAPI.dll
 C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\StoreManageAPI.staticwebassets.endpoints.json
 C:\D\DotNetCore\StoreManageAPI\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\D\DotNetCore\StoreManageAPI\obj\Debug\net8.0\staticwebassets\msbuild.StoreManageAPI.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll

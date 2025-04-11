@@ -22,6 +22,7 @@ using StoreManageAPI.Services.Shop;
 using StoreManageAPI.Services.Store;
 using StoreManageAPI.Services.UserManager;
 using StoreManageAPI.Services.VnPay;
+using StoreManageAPI.Websoket;
 using System.Text;
 using VNPAY.NET;
 using static StoreManageAPI.Helpers.SendEmail.SendEmail;
@@ -104,18 +105,11 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 });
 
-//builder.Services.AddCors(options =>{
-//     options.AddPolicy(Config.PolicyName, policy =>
-//    {
-//        policy.WithOrigins("https://giving-grackle-gradually.ngrok-free.app") // Cho phép mọi origin
-//              .AllowCredentials()
-//              .AllowAnyHeader()
-//              .AllowAnyMethod();
-//    });
-//});
+// Register websoket
+builder.Services.AddSignalR();
 
 // Config CORS
- builder.Services.AddCors(options =>
+builder.Services.AddCors(options =>
  {
      options.AddPolicy(Config.PolicyName, op =>
      {
@@ -266,7 +260,7 @@ app.Urls.Add("http://0.0.0.0:5000");
 app.UseHttpsRedirection();
 
 app.UseCors(Config.PolicyName);
-
+app.MapHub<WsOrderTableArea>("/ordertablearea");
 app.UseAuthentication();
 app.UseAuthorization();
 

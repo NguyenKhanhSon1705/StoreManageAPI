@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using StoreManageAPI.Context;
 using StoreManageAPI.DTO.Order;
@@ -8,9 +9,9 @@ using StoreManageAPI.ModelReturnData;
 using StoreManageAPI.Models;
 using StoreManageAPI.Services.Interfaces;
 using StoreManageAPI.ViewModels.Ordertables;
+using StoreManageAPI.ViewModels.Shopes;
+using StoreManageAPI.Websoket;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace StoreManageAPI.Services.OrderTables
 {
     public class TableDishService 
@@ -19,8 +20,8 @@ namespace StoreManageAPI.Services.OrderTables
         DataStore context,
         IHttpContextAccessor httpContext,
         UserManager<User> userManager,
-        IMapper mapper
-
+        IMapper mapper,
+        IHubContext<WsOrderTableArea> hubContext
         )
         : ITableDishService
     {
@@ -29,6 +30,26 @@ namespace StoreManageAPI.Services.OrderTables
         private readonly IHttpContextAccessor httpContext = httpContext;
         private readonly UserManager<User> userManager = userManager;
         private readonly IMapper mapper = mapper;
+        private readonly IHubContext<WsOrderTableArea> hubContext = hubContext;
+
+        private async Task NotifyWebsoket(int areaId)
+        {
+            var TableByArea = await context.Tables.Where(w => w.AreaId == areaId)
+                .Select(s => new TableByAreaV
+                {
+                    NameTable = s.NameTable,
+                    areaName = s.Areas.AreaName,
+                    HasHourlyRate = s.HasHourlyRate,
+                    Id = s.Id,
+                    IsActive = s.IsActive,
+                    IsBooking = s.IsBooking,
+                    PriceOfMunite = s.PriceOfMunite,
+                    TimeEnd = s.TimeEnd,
+                    TimeStart = s.TimeStart,
+                })
+                .ToListAsync();
+            await hubContext.Clients.Group($"Area-{areaId}").SendAsync("TableUpdated", TableByArea);
+        }
 
         public async Task<ApiResponse> GetInfoCheckoutAsync(int table_id, int shop_id)
         {
@@ -250,11 +271,24 @@ namespace StoreManageAPI.Services.OrderTables
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                var areaName = await context.Tables
-                    .Where(w => w.Id == currTable.Id)
-                    .Include(inc => inc.Areas)
-                    .Select(s => s.Areas.AreaName)
-                    .FirstOrDefaultAsync();
+                //var areaName = await context.Tables
+                //    .Where(w => w.Id == currTable.Id)
+                //    .Include(inc => inc.Areas)
+                //    .Select(s => s.Areas.AreaName)
+                //    .FirstOrDefaultAsync();
+
+                 var area = await context.Tables
+                     .Where(w => w.Id == currTable.Id)
+                     .Include(inc => inc.Areas)
+                     .Select(s => new
+                     {
+                         name = s.Areas.AreaName , 
+                         id = s.Areas.Id
+                     })
+                     .FirstOrDefaultAsync();
+
+                // websocket
+                await NotifyWebsoket(area.id);
 
                 var result = new PaymantInfoDTO
                 {
@@ -263,7 +297,7 @@ namespace StoreManageAPI.Services.OrderTables
                     total_quantity = total_quantity,
                     table_name = currTable.NameTable,
                     staff_name = currentUser.FullName ?? currentUser.Email,
-                    area_name = areaName,
+                    area_name = area.name,
                     shop_name = curShop.ShopName,
                     hotline = curShop.ShopPhone,
                     address_shop = curShop.ShopAddress,
@@ -366,6 +400,18 @@ namespace StoreManageAPI.Services.OrderTables
                 context.TableDishs.RemoveRange(tableDishes);
 
                 await context.SaveChangesAsync();
+
+                var area = await context.Tables
+                   .Where(w => w.Id == currTable.Id)
+                   .Include(inc => inc.Areas)
+                   .Select(s => new
+                   {
+                       name = s.Areas.AreaName,
+                       id = s.Areas.Id
+                   })
+                   .FirstOrDefaultAsync();
+                // websocket
+                await NotifyWebsoket(area.id);
                 await transaction.CommitAsync();
 
                 return new ApiResponse
@@ -621,11 +667,18 @@ namespace StoreManageAPI.Services.OrderTables
                 //      })
                 //      .ToList();
 
-                var areaName = await context.Tables
+                var area = await context.Tables
                     .Where(w => w.Id == model.tableId)
                     .Include(inc => inc.Areas)
-                    .Select(s => s.Areas.AreaName)
+                    .Select(s => new
+                    {
+                        name = s.Areas.AreaName , 
+                        id = s.Areas.Id
+                    })
                     .FirstOrDefaultAsync();
+
+                // websocket
+                await NotifyWebsoket(area.id);
 
                 var result = new TableDishInfoV
                 {
@@ -636,8 +689,10 @@ namespace StoreManageAPI.Services.OrderTables
                     HasHourlyRate = curTable.HasHourlyRate,
                     Id = curTable.Id,
                     PriceOfMunite = curTable.PriceOfMunite,
-                    areaName = areaName
+                    areaName = area.name
                 };
+
+                
                 return new ApiResponse
                 {
                     Message = "Tạo bàn món ăn thành công",
