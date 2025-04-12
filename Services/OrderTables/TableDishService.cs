@@ -12,6 +12,8 @@ using StoreManageAPI.ViewModels.Ordertables;
 using StoreManageAPI.ViewModels.Shopes;
 using StoreManageAPI.Websoket;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace StoreManageAPI.Services.OrderTables
 {
     public class TableDishService 
@@ -50,7 +52,6 @@ namespace StoreManageAPI.Services.OrderTables
                 .ToListAsync();
             await hubContext.Clients.Group($"Area-{areaId}").SendAsync("TableUpdated", TableByArea);
         }
-
         public async Task<ApiResponse> GetInfoCheckoutAsync(int table_id, int shop_id)
         {
             try
@@ -271,11 +272,6 @@ namespace StoreManageAPI.Services.OrderTables
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                //var areaName = await context.Tables
-                //    .Where(w => w.Id == currTable.Id)
-                //    .Include(inc => inc.Areas)
-                //    .Select(s => s.Areas.AreaName)
-                //    .FirstOrDefaultAsync();
 
                  var area = await context.Tables
                      .Where(w => w.Id == currTable.Id)
@@ -691,8 +687,6 @@ namespace StoreManageAPI.Services.OrderTables
                     PriceOfMunite = curTable.PriceOfMunite,
                     areaName = area.name
                 };
-
-                
                 return new ApiResponse
                 {
                     Message = "Tạo bàn món ăn thành công",

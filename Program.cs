@@ -73,7 +73,6 @@ builder.Services.AddScoped<IStatisticalService, StatisticalService>();
 var maisetting = builder.Configuration.GetSection("MailSettings");
 builder.Services.Configure<MailSettings>(maisetting);
 builder.Services.AddScoped<ISendMail, SendMail>();
-
 // Config Login for Identity 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DataStore>()
@@ -120,37 +119,6 @@ builder.Services.AddCors(options =>
      });
  });
 
-/*
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(AppRoles.Administrator, policy =>
-    {
-        policy.RequireRole(AppRoles.Administrator);
-    });
-    options.AddPolicy(AppRoles.Developer, policy =>
-    {
-        policy.RequireRole(AppRoles.Developer );
-        policy.RequireRole(AppRoles.Administrator );
-    });
-
-
-    options.AddPolicy(AppRoles.Owner, policy =>
-    {
-        policy.RequireRole(AppRoles.Owner);
-    });
-
-    options.AddPolicy(AppRoles.Staff, policy =>
-    {
-        policy.RequireRole(AppRoles.Staff);
-    });
-   
-    options.AddPolicy(AppRoles.Sashier, policy =>
-    {
-        policy.RequireRole(AppRoles.Sashier);
-    });
-});*/
-
-
 // Config JWT 
 builder.Services.AddAuthentication(options =>
 {
@@ -192,7 +160,6 @@ builder.Services.AddAuthentication(options =>
             }
         };
     });
-
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -241,14 +208,12 @@ builder.Services.AddRouting(option =>
     option.LowercaseUrls = true;
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    
     app.UseSwaggerUI(config =>
     {
         config.SwaggerEndpoint("v1/swagger.json", "Test");

@@ -301,3 +301,4 @@ C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abs
 C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
 C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
 C:\D\DotNetCore\StoreManageAPI\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll
+

@@ -32,7 +32,12 @@
     <PackageReference Include="VNPAY.NET" Version="8.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Assets\Images\" />
+    <Folder Include="Access\Images\" />
     <Folder Include="Controllers\Websoket\" />
+    <Folder Include="Functions\Paging\" />
+    <Folder Include="Functions\SendMails\" />
+    <Folder Include="Repositories\Interfaces\" />
+    <Folder Include="Services\Interfaces\" />
+    <Folder Include="ViewModels\" />
   </ItemGroup>
 </Project>
