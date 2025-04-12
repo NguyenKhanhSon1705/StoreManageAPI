@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "D:\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj": {}
+    "C:\\D\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj": {}
   },
   "projects": {
-    "D:\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj": {
+    "C:\\D\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj",
+        "projectUniqueName": "C:\\D\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj",
         "projectName": "StoreManageAPI",
-        "projectPath": "D:\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj",
+        "projectPath": "C:\\D\\DotNetCore\\StoreManageAPI\\StoreManageAPI.csproj",
         "packagesPath": "C:\\Users\\F6\\.nuget\\packages\\",
-        "outputPath": "D:\\DotNetCore\\StoreManageAPI\\obj\\",
+        "outputPath": "C:\\D\\DotNetCore\\StoreManageAPI\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
           "C:\\Users\\F6\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -22,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -40,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -50,6 +54,14 @@
               "target": "Package",
               "version": "[13.0.1, )"
             },
+            "CloudinaryDotNet": {
+              "target": "Package",
+              "version": "[1.26.2, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.7.1.1, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.7, )"
@@ -58,14 +70,20 @@
               "target": "Package",
               "version": "[8.0.7, )"
             },
+            "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.2.0, )"
+            },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.7, )"
             },
-<<<<<<< Updated upstream
-=======
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
@@ -80,16 +98,12 @@
               "target": "Package",
               "version": "[4.7.1, )"
             },
->>>>>>> Stashed changes
             "MySql.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.5, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-<<<<<<< Updated upstream
-              "version": "[6.4.0, )"
-=======
               "version": "[6.7.2, )"
             },
             "Swashbuckle.AspNetCore.Annotations": {
@@ -103,7 +117,6 @@
             "VNPAY.NET": {
               "target": "Package",
               "version": "[8.5.0, )"
->>>>>>> Stashed changes
             }
           },
           "imports": [
@@ -125,7 +138,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

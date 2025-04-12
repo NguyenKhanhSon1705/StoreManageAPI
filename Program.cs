@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using StoreManageAPI.Config;
+using StoreManageAPI.Context;
+using StoreManageAPI.DatabaseMigrations;
+using StoreManageAPI.Mddleware;
+using StoreManageAPI.ModelReturnData;
 using StoreManageAPI.Models;
-<<<<<<< Updated upstream
-using System.Text;
-=======
 using StoreManageAPI.Services.Auth;
 using StoreManageAPI.Services.Dish;
 using StoreManageAPI.Services.Interfaces;
@@ -17,10 +22,10 @@ using StoreManageAPI.Services.Shop;
 using StoreManageAPI.Services.Store;
 using StoreManageAPI.Services.UserManager;
 using StoreManageAPI.Services.VnPay;
+using StoreManageAPI.Websoket;
 using System.Text;
 using VNPAY.NET;
 using static StoreManageAPI.Helpers.SendEmail.SendEmail;
->>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +39,12 @@ builder.Services.AddSwaggerGen();
 // Connect MySql
 builder.Services.AddDbContext<DataStore>(option =>
 {
-    string connect = builder.Configuration.GetConnectionString("ConnectionStrings") ?? "";
-    option.UseMySQL(connect);
+    string? connect = builder.Configuration.GetConnectionString("connect");
+    option.UseMySQL(connect?? "");
 });
 
+
 // DI D Injection
-<<<<<<< Updated upstream
-=======
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<CloudinaryMiddle>();
 
@@ -69,8 +73,6 @@ builder.Services.AddScoped<IStatisticalService, StatisticalService>();
 var maisetting = builder.Configuration.GetSection("MailSettings");
 builder.Services.Configure<MailSettings>(maisetting);
 builder.Services.AddScoped<ISendMail, SendMail>();
->>>>>>> Stashed changes
-
 // Config Login for Identity 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DataStore>()
@@ -80,10 +82,10 @@ builder.Services.AddIdentity<User, IdentityRole>()
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Thiết lập yêu cầu về mật khẩu
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 4;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
+    options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
 
     // Thiết lập khóa người dùng
@@ -93,29 +95,29 @@ builder.Services.Configure<IdentityOptions>(options =>
 
     // Thiết lập yêu cầu về người dùng
     options.User.RequireUniqueEmail = true;
+
+    // SignIn
+
+    options.SignIn.RequireConfirmedEmail = true;
+    options.SignIn.RequireConfirmedPhoneNumber = false;
+    options.SignIn.RequireConfirmedAccount = true;
+
 });
+
+// Register websoket
+builder.Services.AddSignalR();
 
 // Config CORS
 builder.Services.AddCors(options =>
-{
-<<<<<<< Updated upstream
-    options.AddPolicy("AllowGlobal",
-            builder => builder
-                .WithOrigins()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-=======
-    options.AddPolicy(Config.PolicyName, op =>
-    {
-       op.WithOrigins(builder.Configuration
-           .GetSection(Config.AllowedOrigins)
-           .Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
-    });
->>>>>>> Stashed changes
-});
+ {
+     options.AddPolicy(Config.PolicyName, op =>
+     {
+       op.WithOrigins(builder.Configuration.GetSection(Config.AllowedOrigins).Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials();
+     });
+ });
 
 // Config JWT 
 builder.Services.AddAuthentication(options =>
@@ -124,7 +126,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 
 })
-    .AddJwtBearer(options =>
+    .AddJwtBearer( options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -132,14 +134,32 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
-            ValidAudience = builder.Configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"] ?? ""))
+
+            ClockSkew = TimeSpan.Zero,
+
+            ValidIssuer = builder.Configuration[Config.Issues] ?? throw new InvalidOperationException("Issues is not found"),
+            ValidAudience = builder.Configuration[Config.Audience] ?? throw new InvalidOperationException("Audience is not found"),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration[Config.AccessTokenSecret] ?? throw new InvalidOperationException("SecurityKey is not found")))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                // Call this to skip the default logic and avoid using the default response
+                context.HandleResponse();
+                // Write to the response in any way you wish
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsJsonAsync(
+                    new ApiResponse
+                    {
+                        StatusCode = 401,
+                        IsSuccess = false,
+                        Message = "You are not authorized, please login to get access"
+                    }
+                );
+            }
         };
     });
-
-<<<<<<< Updated upstream
-=======
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -188,29 +208,24 @@ builder.Services.AddRouting(option =>
     option.LowercaseUrls = true;
 });
 
-
->>>>>>> Stashed changes
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-<<<<<<< Updated upstream
-    app.UseSwaggerUI();
-=======
-    
     app.UseSwaggerUI(config =>
     {
         config.SwaggerEndpoint("v1/swagger.json", "Test");
     });
->>>>>>> Stashed changes
 }
+
+app.Urls.Add("http://0.0.0.0:5000");
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowGlobal");
-
+app.UseCors(Config.PolicyName);
+app.MapHub<WsOrderTableArea>("/ordertablearea");
 app.UseAuthentication();
 app.UseAuthorization();
 

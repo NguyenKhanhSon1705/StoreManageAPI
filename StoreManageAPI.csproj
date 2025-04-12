@@ -9,16 +9,16 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
+    <PackageReference Include="MailKit" Version="4.7.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-<<<<<<< Updated upstream
-    <PackageReference Include="MySql.EntityFrameworkCore" Version="8.0.5" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-=======
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,18 +30,14 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.7.2" />
     <PackageReference Include="UAParser" Version="3.1.47" />
     <PackageReference Include="VNPAY.NET" Version="8.5.0" />
->>>>>>> Stashed changes
   </ItemGroup>
   <ItemGroup>
-<<<<<<< Updated upstream
     <Folder Include="Access\Images\" />
+    <Folder Include="Controllers\Websoket\" />
     <Folder Include="Functions\Paging\" />
     <Folder Include="Functions\SendMails\" />
     <Folder Include="Repositories\Interfaces\" />
     <Folder Include="Services\Interfaces\" />
     <Folder Include="ViewModels\" />
-=======
-    <Folder Include="Assets\Images\" />
->>>>>>> Stashed changes
   </ItemGroup>
 </Project>
