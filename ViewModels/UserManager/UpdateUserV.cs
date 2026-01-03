@@ -13,5 +13,6 @@ namespace StoreManageAPI.ViewModels.UserManager
         public IFormFile? Picture { get; set; }
         public DateTime? BirthDay { get; set; }
         public int? Gender { get; set; }
+        public string? RoleId { get; set; }
     }
 }

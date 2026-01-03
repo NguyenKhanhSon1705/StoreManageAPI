@@ -54,6 +54,7 @@ namespace StoreManageAPI.Services.Store
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow,
                 };
+
                 if(model.ShopLogo != null)
                 {
                     newShop.ShopLogo = await cloud.CloudinaryUploadImage(model.ShopLogo); 

@@ -16,11 +16,13 @@
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "8.0.8",
           "Microsoft.EntityFrameworkCore.Design": "8.0.7",
           "Microsoft.EntityFrameworkCore.Tools": "8.0.7",
+          "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": "1.21.0",
           "MimeKit": "4.7.1",
           "MySql.EntityFrameworkCore": "8.0.5",
           "Swashbuckle.AspNetCore": "6.7.2",
           "Swashbuckle.AspNetCore.Annotations": "6.7.2",
-          "UAParser": "3.1.47"
+          "UAParser": "3.1.47",
+          "VNPAY.NET": "8.5.0"
         },
         "runtime": {
           "StoreManageAPI.dll": {}
@@ -143,6 +145,17 @@
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.724.31402"
           }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Abstractions/2.1.1": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Http.Features": "2.1.1",
+          "System.Text.Encodings.Web": "8.0.0"
+        }
+      },
+      "Microsoft.AspNetCore.Http.Features/2.1.1": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.7": {
@@ -631,6 +644,7 @@
           }
         }
       },
+      "Microsoft.VisualStudio.Azure.Containers.Tools.Targets/1.21.0": {},
       "MimeKit/4.7.1": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.4.0",
@@ -1344,6 +1358,17 @@
           }
         }
       },
+      "VNPAY.NET/8.5.0": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Http.Abstractions": "2.1.1"
+        },
+        "runtime": {
+          "lib/net8.0/VNPAY.NET.dll": {
+            "assemblyVersion": "8.5.0.0",
+            "fileVersion": "8.5.0.0"
+          }
+        }
+      },
       "ZstdSharp.Port/0.8.0": {
         "runtime": {
           "lib/net8.0/ZstdSharp.dll": {
@@ -1443,6 +1468,20 @@
       "sha512": "sha512-gJuhW5txl9TudVh+JczfTSoI77bGDYrvhA/tY2NURmH8MjatrGAQnFsW/ME+aDQ6rHqXSI0X3ELZESwUIZKlgg==",
       "path": "microsoft.aspnetcore.cryptography.keyderivation/8.0.7",
       "hashPath": "microsoft.aspnetcore.cryptography.keyderivation.8.0.7.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Http.Abstractions/2.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kQUEVOU4loc8CPSb2WoHFTESqwIa8Ik7ysCBfTwzHAd0moWovc9JQLmhDIHlYLjHbyexqZAlkq/FPRUZqokebw==",
+      "path": "microsoft.aspnetcore.http.abstractions/2.1.1",
+      "hashPath": "microsoft.aspnetcore.http.abstractions.2.1.1.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Http.Features/2.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VklZ7hWgSvHBcDtwYYkdMdI/adlf7ebxTZ9kdzAhX+gUs5jSHE9mZlTamdgf9miSsxc1QjNazHXTDJdVPZKKTw==",
+      "path": "microsoft.aspnetcore.http.features/2.1.1",
+      "hashPath": "microsoft.aspnetcore.http.features.2.1.1.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.7": {
       "type": "package",
@@ -1709,6 +1748,13 @@
       "sha512": "sha512-tTaBT8qjk3xINfESyOPE2rIellPvB7qpVqiWiyA/lACVvz+xOGiXhFUfohcx82NLbi5avzLW0lx+s6oAqQijfw==",
       "path": "microsoft.openapi/1.6.14",
       "hashPath": "microsoft.openapi.1.6.14.nupkg.sha512"
+    },
+    "Microsoft.VisualStudio.Azure.Containers.Tools.Targets/1.21.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8NudeHOE56YsY59HYY89akRMup8Ho+7Y3cADTGjajjWroXVU9RQai2nA6PfteB8AuzmRHZ5NZQB2BnWhQEul5g==",
+      "path": "microsoft.visualstudio.azure.containers.tools.targets/1.21.0",
+      "hashPath": "microsoft.visualstudio.azure.containers.tools.targets.1.21.0.nupkg.sha512"
     },
     "MimeKit/4.7.1": {
       "type": "package",
@@ -2311,6 +2357,13 @@
       "sha512": "sha512-I68Jl/Vs5RQZdz9BbmYtnXgujg0jVd61LhKbyNZOCm9lBxZFGxLbiQo6yFj21VYi7DzPvEvrVOmeC6v41AoLfw==",
       "path": "uaparser/3.1.47",
       "hashPath": "uaparser.3.1.47.nupkg.sha512"
+    },
+    "VNPAY.NET/8.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rdiNL0StLkIQ0F2bODf+/6rOFTkk7JXtQrpo0Zbl1xQ/ZhPIl4dfR0a5bOp8reeb44bkPuG2qRAEM0AJ3R36/Q==",
+      "path": "vnpay.net/8.5.0",
+      "hashPath": "vnpay.net.8.5.0.nupkg.sha512"
     },
     "ZstdSharp.Port/0.8.0": {
       "type": "package",

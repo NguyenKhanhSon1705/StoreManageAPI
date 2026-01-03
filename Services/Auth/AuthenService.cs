@@ -272,12 +272,12 @@ namespace StoreManageAPI.Services.Auth
                 var tokenClaims = new List<Claim>()
             {
                 new (ClaimTypes.NameIdentifier , user.Id),
-                new (ClaimTypes.Name , user.FullName ?? ""),
+                new ("fullname" , user.FullName ??  user.Email ?? ""),
             };
 
                 var userRoles = await userManager.GetRolesAsync(user);
 
-                tokenClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+                tokenClaims.AddRange(userRoles.Select(role => new Claim("roles", role)));
 
                 var accessToken = jwtService.GenerateAccessToken(tokenClaims);
                 var refreshToken = jwtService.GenerateRefreshToken(tokenClaims) ?? default;
