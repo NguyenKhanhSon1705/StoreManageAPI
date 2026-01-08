@@ -494,6 +494,27 @@ namespace StoreManageAPI.Services.OrderTables
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                // Lấy thông tin cả 2 areas (old và new) để gửi WebSocket notifications
+                var oldTableArea = await context.Tables
+                    .Where(w => w.Id == tableIdOld)
+                    .Select(s => s.AreaId)
+                    .FirstOrDefaultAsync();
+
+                var newTableArea = await context.Tables
+                    .Where(w => w.Id == tableIdNew)
+                    .Select(s => s.AreaId)
+                    .FirstOrDefaultAsync();
+
+                // Gửi notification cho area cũ (bàn đã trống)
+                await NotifyWebsoket(oldTableArea);
+
+                // Gửi notification cho area mới (bàn đã có người)
+                // Chỉ gửi nếu khác area (tránh gửi 2 lần cho cùng 1 area)
+                if (oldTableArea != newTableArea)
+                {
+                    await NotifyWebsoket(newTableArea);
+                }
+
                     // Lấy thông tin món ăn và khu vực của bàn mới
                 var groupedResult = await context.TableDishs
                 .Where(w => w.tableId == checkTableNew.Id)
@@ -676,6 +697,24 @@ namespace StoreManageAPI.Services.OrderTables
                 // websocket
                 await NotifyWebsoket(area.id);
 
+                // Send dish update notification to table-specific group
+                var dishesUpdated = await context.TableDishs
+                    .Where(w => w.tableId == model.tableId)
+                    .Include(inc => inc.dish)
+                    .Select(s => new
+                    {
+                        id = s.dish.Id,
+                        dish_Name = s.dish.Dish_Name,
+                        image = s.dish.Image,
+                        selling_Price = s.selling_Price,
+                        quantity = s.quantity,
+                        notes = s.notes
+                    })
+                    .ToListAsync();
+
+                await hubContext.Clients.Group($"Table-{model.tableId}")
+                    .SendAsync("DishesUpdated", dishesUpdated);
+
                 var result = new TableDishInfoV
                 {
                     TimeStart = curTable.TimeStart,
@@ -746,12 +785,38 @@ namespace StoreManageAPI.Services.OrderTables
                 }
                 await context.SaveChangesAsync();
 
-
-                var areaName = await context.Tables
+                // Lấy thông tin area để gửi WebSocket notification
+                var area = await context.Tables
                     .Where(w => w.Id == model.tableId)
                     .Include(inc => inc.Areas)
-                    .Select(s => s.Areas.AreaName)
+                    .Select(s => new
+                    {
+                        name = s.Areas.AreaName,
+                        id = s.Areas.Id
+                    })
                     .FirstOrDefaultAsync();
+
+                // websocket notification
+                await NotifyWebsoket(area.id);
+
+                // Send dish update notification to table-specific group
+                var dishesUpdated = await context.TableDishs
+                    .Where(w => w.tableId == model.tableId)
+                    .Include(inc => inc.dish)
+                    .Select(s => new
+                    {
+                        id = s.dish.Id,
+                        dish_Name = s.dish.Dish_Name,
+                        image = s.dish.Image,
+                        selling_Price = s.selling_Price,
+                        quantity = s.quantity,
+                        notes = s.notes
+                    })
+                    .ToListAsync();
+
+                await hubContext.Clients.Group($"Table-{model.tableId}")
+                    .SendAsync("DishesUpdated", dishesUpdated);
+
                 var result = new TableDishInfoV
                 {
                     TimeStart = curTable.TimeStart,
@@ -761,7 +826,7 @@ namespace StoreManageAPI.Services.OrderTables
                     HasHourlyRate = curTable.HasHourlyRate,
                     Id = curTable.Id,
                     PriceOfMunite = curTable.PriceOfMunite,
-                    areaName = areaName
+                    areaName = area.name
                 };
 
                 return new ApiResponse

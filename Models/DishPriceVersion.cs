@@ -6,7 +6,7 @@ namespace StoreManageAPI.Models
     public class DishPriceVersion
     {
         [Key]
-        public int? id { get; set; }
+        public int id { get; set; }
         public int? dish_id  { get; set; }
         public string? price_version { get; set; }
         public decimal? selling_price {  get; set; }

@@ -46,7 +46,7 @@ namespace StoreManageAPI.Controllers
         }
         
         [HttpGet("get-all-dish")]
-        [Authorize(Roles = Config.Roles.AppRoles.Owner)]
+        // [Authorize(Roles = Config.Roles.AppRoles.Owner)]
         public async Task<IActionResult> GetAllDish(int shopId, int pageIndex = 1, int pageSize = 10, string search = "")
         {
             var result = await service.GetAllDishAsync(shopId, pageIndex, pageSize , search);

@@ -22,10 +22,10 @@ using StoreManageAPI.Services.Shop;
 using StoreManageAPI.Services.Store;
 using StoreManageAPI.Services.UserManager;
 using StoreManageAPI.Services.VnPay;
-using StoreManageAPI.Websoket;
 using System.Text;
 using VNPAY.NET;
 using static StoreManageAPI.Helpers.SendEmail.SendEmail;
+using StoreManageAPI.Websoket;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +39,7 @@ builder.Services.AddSwaggerGen();
 // Connect MySql
 builder.Services.AddDbContext<DataStore>(option =>
 {
-    string? connect = builder.Configuration.GetConnectionString("connect");
+    string? connect = builder.Configuration.GetConnectionString("connection");
     option.UseMySQL(connect?? "");
 });
 
@@ -104,20 +104,55 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 });
 
-// Register websoket
+
+
+// Config SignalR
 builder.Services.AddSignalR();
 
 // Config CORS
 builder.Services.AddCors(options =>
- {
-     options.AddPolicy(Config.PolicyName, op =>
-     {
-       op.WithOrigins(builder.Configuration.GetSection(Config.AllowedOrigins).Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
-         .AllowAnyHeader()
-         .AllowAnyMethod()
-         .AllowCredentials();
-     });
- });
+{
+    options.AddPolicy(Config.PolicyName, op =>
+    {
+       op.WithOrigins(builder.Configuration
+           .GetSection(Config.AllowedOrigins)
+           .Get<string[]>() ?? throw new InvalidOperationException("AllowedOrigins is not found"))
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
+
+/*
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AppRoles.Administrator, policy =>
+    {
+        policy.RequireRole(AppRoles.Administrator);
+    });
+    options.AddPolicy(AppRoles.Developer, policy =>
+    {
+        policy.RequireRole(AppRoles.Developer );
+        policy.RequireRole(AppRoles.Administrator );
+    });
+
+
+    options.AddPolicy(AppRoles.Owner, policy =>
+    {
+        policy.RequireRole(AppRoles.Owner);
+    });
+
+    options.AddPolicy(AppRoles.Staff, policy =>
+    {
+        policy.RequireRole(AppRoles.Staff);
+    });
+   
+    options.AddPolicy(AppRoles.Sashier, policy =>
+    {
+        policy.RequireRole(AppRoles.Sashier);
+    });
+});*/
+
 
 // Config JWT 
 builder.Services.AddAuthentication(options =>
@@ -220,15 +255,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.Urls.Add("http://0.0.0.0:5000");
 
 app.UseHttpsRedirection();
 
 app.UseCors(Config.PolicyName);
-app.MapHub<WsOrderTableArea>("/ordertablearea");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<WsOrderTableArea>("/hub/ws-order-table-area");
 
 app.Run();

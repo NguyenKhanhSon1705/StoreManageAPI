@@ -33,6 +33,8 @@ namespace StoreManageAPI.Context
                 .HasKey(key => new {key.dish_id, key.aborted_table_id});
             builder.Entity<BillDetails>()
                 .HasKey(key=> new {key.dish_id , key.bill_id});
+
+            builder.Entity<DishPriceVersion>().HasKey(x => x.id);
             
         }   
         // các bảng liên quan đến người dùng
